@@ -1,0 +1,59 @@
+service: slack-psee-webhook
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: ${opt:region, 'us-east-1'}
+  stage: ${opt:stage, 'dev'}
+  memorySize: 512
+  timeout: 30
+  
+  environment:
+    NODE_ENV: ${self:provider.stage}
+    MONDAY_API_TOKEN: ${env:MONDAY_API_TOKEN}
+    SLACK_BOT_TOKEN: ${env:SLACK_BOT_TOKEN}
+    SLACK_SIGNING_SECRET: ${env:SLACK_SIGNING_SECRET}
+    MONDAY_GROUP_ALLIANZ: ${env:MONDAY_GROUP_ALLIANZ}
+    MONDAY_GROUP_BRADESCO: ${env:MONDAY_GROUP_BRADESCO}
+    MONDAY_GROUP_MASTERCARD: ${env:MONDAY_GROUP_MASTERCARD}
+    MONDAY_GROUP_VOLKSWAGEN: ${env:MONDAY_GROUP_VOLKSWAGEN}
+    LOG_LEVEL: info
+    LOG_FORMAT: json
+  
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+          Resource: '*'
+
+functions:
+  webhook:
+    handler: lambda.handler
+    events:
+      - http:
+          path: /lookup-psee
+          method: post
+          cors: true
+      - http:
+          path: /process-alert
+          method: post
+          cors: true
+      - http:
+          path: /health
+          method: get
+          cors: true
+
+plugins:
+  - serverless-offline
+
+custom:
+  serverless-offline:
+    httpPort: 3000
+
+# Made with Bob
