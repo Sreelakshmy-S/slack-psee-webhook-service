@@ -17,11 +17,20 @@ const accountIdToCustomer = {
 };
 
 // Map customer names to Slack channels
+// const customerToChannel = {
+//   'Allianz': 'C0A7C3CH4LW',
+//   'Bradesco': 'C0A5UTEGZJT',
+//   'Mastercard': 'C0A5KDHSCRE',
+//   'Volkswagen': 'C0A6DPP5NJ1'
+// };
+
 const customerToChannel = {
-  'Allianz': 'C0A7C3CH4LW',
-  'Bradesco': 'C0A5UTEGZJT',
-  'Mastercard': 'C0A5KDHSCRE',
-  'Volkswagen': 'C0A6DPP5NJ1'
+  'Allianz': 'C0BBB31EC1Y',
+  'Bradesco': 'C0BBB31EC1Y',
+  'Mastercard': 'C0BBB31EC1Y',
+  'Volkswagen': 'C0BBB31EC1Y'
+
+  
 };
 
 /**
