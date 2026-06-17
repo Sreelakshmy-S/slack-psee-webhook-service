@@ -30,7 +30,9 @@ module.exports = {
     'C0A7C3CH4LW': 'Allianz',
     'C0A5UTEGZJT': 'Bradesco',
     'C0A5KDHSCRE': 'Mastercard',
-    'C0A6DPP5NJ1': 'Volkswagen'
+    'C0A6DPP5NJ1': 'Volkswagen',
+    'C09L50MAXS5': 'Multi-Customer'  // Your test channel
+
   },
 
   // Monday.com group IDs for each customer
