@@ -66,12 +66,19 @@ app.post('/n', async (req, res) => {
   try {
     logger.info('Received NHub alert', { body: req.body });
     const result = await processNHubAlert(req.body);
+    
+    // Return full result with PSEE details
     res.json({
       success: result.success,
       message: result.success ? 'PSEE notification sent' : `Error: ${result.error}`,
       psee_found: result.pseeFound,
       customer: result.customer,
-      product: result.product
+      product: result.product,
+      channel: result.channel,
+      incident_number: result.incidentNumber,
+      psee: result.psee,
+      fallback_reason: result.fallbackReason,
+      notified_users: result.notifiedUsers
     });
   } catch (error) {
     logger.error('Error in NHub webhook', { error: error.message });
