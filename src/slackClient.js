@@ -112,6 +112,23 @@ class SlackClient {
    */
   async postMessage(channelId, text, threadTs = null) {
     try {
+      // MOCK MODE: If no bot token, return mock response
+      if (!this.client.token || this.client.token === '') {
+        logger.info('MOCK MODE: Simulating Slack message post', { channelId, text, threadTs });
+        return {
+          ok: true,
+          channel: channelId,
+          ts: Date.now().toString() + '.000000',
+          message: {
+            text: text,
+            username: 'PSEE Bot (Mock)',
+            bot_id: 'B_MOCK_BOT',
+            type: 'message',
+            ts: Date.now().toString() + '.000000'
+          }
+        };
+      }
+
       logger.info('Posting message to Slack', { channelId, threadTs });
 
       const params = {
