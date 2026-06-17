@@ -119,7 +119,27 @@ async function processNHubAlert(alertData) {
       customer: customerName,
       product: productName,
       channel: channelId,
-      incidentNumber: incidentNumber
+      incidentNumber: incidentNumber,
+      // Include PSEE details for verification
+      psee: resolution.pseeFound ? {
+        name: resolution.pseeInfo?.name || 'Unknown',
+        email: resolution.pseeInfo?.email || 'Unknown',
+        slackId: resolution.primaryUsers?.[0]?.id || 'Unknown'
+      } : null,
+      fallbackReason: resolution.fallbackReason,
+      // Include all notified users
+      notifiedUsers: {
+        primary: resolution.primaryUsers?.map(u => ({
+          id: u.id,
+          name: u.name,
+          email: u.email
+        })) || [],
+        cc: resolution.ccUsers?.map(u => ({
+          id: u.id,
+          name: u.name,
+          email: u.email
+        })) || []
+      }
     };
 
   } catch (error) {
