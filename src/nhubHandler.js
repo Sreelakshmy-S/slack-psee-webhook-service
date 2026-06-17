@@ -25,12 +25,10 @@ const accountIdToCustomer = {
 // };
 
 const customerToChannel = {
-  'Allianz': 'C0BBB31EC1Y',
-  'Bradesco': 'C0BBB31EC1Y',
-  'Mastercard': 'C0BBB31EC1Y',
-  'Volkswagen': 'C0BBB31EC1Y'
-
-  
+  'Allianz': 'C0BB972BZ8W',      // Mock channel for testing
+  'Bradesco': 'C0BB972BZ8W',     // Mock channel for testing
+  'Mastercard': 'C0BB972BZ8W',   // Mock channel for testing
+  'Volkswagen': 'C0BB972BZ8W'    // Mock channel for testing
 };
 
 /**
