@@ -26,20 +26,16 @@ class PSEEResolver {
       let fallbackReason = null;
 
       if (pseeInfo && pseeInfo.email) {
-        // PSEE found - lookup Slack user
-        logger.info('PSEE found, looking up Slack user', { email: pseeInfo.email });
+        // PSEE found - use email directly (no Slack lookup)
+        logger.info('PSEE found in Monday.com', {
+          email: pseeInfo.email,
+          name: pseeInfo.name
+        });
         
-        try {
-          const slackUser = await slackClient.lookupUserByEmail(pseeInfo.email);
-          primaryUsers.push(slackUser);
-        } catch (error) {
-          logger.warn('PSEE email not found in Slack, falling back to PSA', {
-            email: pseeInfo.email,
-            error: error.message
-          });
-          fallbackReason = `PSEE email (${pseeInfo.email}) not found in Slack workspace`;
-          // Fall through to PSA lookup
-        }
+        primaryUsers.push({
+          email: pseeInfo.email,
+          name: pseeInfo.name
+        });
       } else {
         logger.info('No PSEE found in Monday.com, using PSA fallback', {
           productName,
@@ -48,7 +44,7 @@ class PSEEResolver {
         fallbackReason = 'No PSEE configured for this product';
       }
 
-      // Step 2: If no PSEE found or PSEE not in Slack, use PSA fallback
+      // Step 2: If no PSEE found, use PSA fallback
       if (primaryUsers.length === 0) {
         const psaEmails = config.psaEmails[customer];
         
@@ -56,33 +52,36 @@ class PSEEResolver {
           throw new Error(`No PSA configured for customer: ${customer}`);
         }
 
-        logger.info('Looking up PSA users', { psaEmails });
-        primaryUsers = await slackClient.lookupMultipleUsers(psaEmails);
-
-        if (primaryUsers.length === 0) {
-          throw new Error(`No PSA users found in Slack for customer: ${customer}`);
-        }
+        logger.info('Using PSA fallback', { psaEmails });
+        
+        // Use PSA emails directly (no Slack lookup)
+        primaryUsers = psaEmails.map(email => ({
+          email: email,
+          name: email.split('@')[0].replace(/\./g, ' ').replace(/\b\w/g, l => l.toUpperCase())
+        }));
       }
 
       // Step 3: Always include CC users
       const ccEmails = config.alwaysCC;
-      logger.info('Looking up CC users', { ccEmails });
-      const ccUsers = await slackClient.lookupMultipleUsers(ccEmails);
+      logger.info('Adding CC users', { ccEmails });
+      
+      const ccUsers = ccEmails.map(email => ({
+        email: email,
+        name: email.split('@')[0].replace(/\./g, ' ').replace(/\b\w/g, l => l.toUpperCase())
+      }));
 
       // Step 4: Build response
       const response = {
         success: true,
         customer,
         productName,
-        pseeFound: pseeInfo && pseeInfo.email && primaryUsers.length > 0 && !fallbackReason,
+        pseeFound: pseeInfo && pseeInfo.email && !fallbackReason,
         fallbackReason,
         primaryUsers: primaryUsers.map(u => ({
-          id: u.id,
           name: u.name,
           email: u.email
         })),
         ccUsers: ccUsers.map(u => ({
-          id: u.id,
           name: u.name,
           email: u.email
         })),
@@ -131,26 +130,27 @@ class PSEEResolver {
       return `⚠️ Error processing alert for incident ${incidentNumber}: ${resolution.error}`;
     }
 
-    const primaryMentions = slackClient.formatUserMentions(resolution.primaryUsers);
-    const ccMentions = slackClient.formatUserMentions(resolution.ccUsers);
+    const primaryEmails = resolution.primaryUsers.map(u => u.email).join(', ');
+    const ccEmails = resolution.ccUsers.map(u => u.email).join(', ');
 
     let message = '';
 
     if (resolution.pseeFound) {
       // PSEE found
-      message = `🔔 ${primaryMentions} - Alert for **${resolution.productName}** requires your attention\n`;
+      message = `🔔 Alert for **${resolution.productName}** requires attention\n`;
       message += `📋 Incident: ${incidentNumber}\n`;
-      message += `👤 PSEE: ${resolution.pseeInfo.name}`;
+      message += `👤 PSEE: ${resolution.pseeInfo.name} (${resolution.pseeInfo.email})`;
     } else {
       // PSA fallback
-      message = `🔔 ${primaryMentions} - No PSEE found for **${resolution.productName}**, please assign\n`;
+      message = `🔔 No PSEE found for **${resolution.productName}**, please assign\n`;
       message += `📋 Incident: ${incidentNumber}\n`;
-      message += `ℹ️ Reason: ${resolution.fallbackReason || 'Product not configured'}`;
+      message += `ℹ️ Reason: ${resolution.fallbackReason || 'Product not configured'}\n`;
+      message += `👥 PSA: ${primaryEmails}`;
     }
 
     // Add CC
-    if (ccMentions) {
-      message += `\n\n📧 CC: ${ccMentions}`;
+    if (ccEmails) {
+      message += `\n\n📧 CC: ${ccEmails}`;
     }
 
     return message;

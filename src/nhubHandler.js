@@ -96,7 +96,7 @@ async function processNHubAlert(alertData) {
       };
     }
 
-    // Format notification message
+    // Format notification message (for logging/response only, not posting to Slack yet)
     let message = pseeResolver.formatNotificationMessage(resolution, incidentNumber);
     
     // Add priority/severity if available
@@ -110,10 +110,10 @@ async function processNHubAlert(alertData) {
       message += `\n📌 State: ${alertData.state}`;
     }
 
-    // Post to Slack channel
-    await slackClient.postMessage(channelId, message);
+    // NOTE: Slack posting disabled - just return PSEE info
+    // await slackClient.postMessage(channelId, message);
 
-    logger.info('NHub alert processed successfully', {
+    logger.info('NHub alert processed successfully (Slack posting disabled)', {
       customer: customerName,
       product: productName,
       channel: channelId,
